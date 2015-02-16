@@ -43,8 +43,16 @@ var PhantomJSBrowser = function(baseBrowserDecorator, config, args) {
       }));
     }
 
+    function callback(command) {
+      if (command.eval) {
+        eval(command.eval);
+      }
+    }
+
     var captureCode = 'var page = require("webpage").create();\n' +
-        optionsCode.join('\n') + '\npage.open("' + url + '");\n';
+          optionsCode.join('\n') + '\npage.open("' + url + '");\n' +
+          'page.onCallback = ' + callback.toString() + ';\n';
+
     fs.writeFileSync(captureFile, captureCode);
 
     flags = flags.concat(captureFile);
