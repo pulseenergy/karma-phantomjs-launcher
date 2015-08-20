@@ -36,5 +36,6 @@
   debugPage()
   <% } else { %>
   page.open('<%= url %>')
+  page.onCallback = <%= callback %>
   <% } %>
 }(phantom))

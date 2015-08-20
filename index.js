@@ -56,12 +56,20 @@ var PhantomJSBrowser = function (baseBrowserDecorator, config, args, logger) {
     var file = fs.readFileSync(path.join(__dirname, 'capture.template.js'))
 
     var compiled = _.template(file.toString())
+
+    function callback(command) {
+      if (command.eval) {
+        eval(command.eval)
+      }
+    }
+
     var captureCode = compiled({
       debug: args.debug,
       exitOnResourceError: config && config.exitOnResourceError,
       pageOptions: pageOptions,
       pageSettingsOptions: pageSettingsOptions,
-      url: url
+      url: url,
+      callback: callback.toString()
     })
 
     fs.writeFileSync(captureFile, captureCode)
