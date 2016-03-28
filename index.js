@@ -14,7 +14,7 @@ var phantomJSExePath = function () {
   // Using the cmd as the process to execute causes problems cleaning up the processes
   // so we walk from the cmd to the phantomjs.exe and use that instead.
 
-  var phantomSource = require('phantomjs').path
+  var phantomSource = require('phantomjs-prebuilt').path
 
   if (path.extname(phantomSource).toLowerCase() === '.cmd') {
     return path.join(path.dirname(phantomSource), '//node_modules//phantomjs//lib//phantom//phantomjs.exe')
@@ -29,7 +29,7 @@ var PhantomJSBrowser = function (baseBrowserDecorator, config, args, logger) {
   baseBrowserDecorator(this)
 
   var options = args && args.options || config && config.options || {}
-  var flags = args && args.flags || config && config.flags || []
+  var providedFlags = args && args.flags || config && config.flags || []
 
   this._start = function (url) {
     // create the js file that will open karma
@@ -47,11 +47,6 @@ var PhantomJSBrowser = function (baseBrowserDecorator, config, args, logger) {
         })
       }
     })
-
-    if (args.debug) {
-      flags = flags.concat('--remote-debugger-port=9000')
-      flags = flags.concat('--remote-debugger-autorun=yes')
-    }
 
     var file = fs.readFileSync(path.join(__dirname, 'capture.template.js'))
 
@@ -74,7 +69,16 @@ var PhantomJSBrowser = function (baseBrowserDecorator, config, args, logger) {
 
     fs.writeFileSync(captureFile, captureCode)
 
-    flags = flags.concat(captureFile)
+    // PhantomJS has the following convention for arguments
+    // phantomjs [switchs] [options] [script] [argument [argument [...]]]
+    // with  options being equal to flags
+    var flags = providedFlags
+    if (args.debug) {
+      flags.push('--remote-debugger-port=9000')
+      flags.push('--remote-debugger-autorun=yes')
+    }
+
+    flags.push(captureFile)
 
     // and start phantomjs
     this._execCommand(this._getCommand(), flags)
@@ -102,8 +106,8 @@ PhantomJSBrowser.prototype = {
   name: 'PhantomJS',
 
   DEFAULT_CMD: {
-    linux: require('phantomjs').path,
-    darwin: require('phantomjs').path,
+    linux: require('phantomjs-prebuilt').path,
+    darwin: require('phantomjs-prebuilt').path,
     win32: phantomJSExePath()
   },
   ENV_CMD: 'PHANTOMJS_BIN'
